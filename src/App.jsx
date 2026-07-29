@@ -30,7 +30,7 @@ const memories = [
     icon: "🌹",
     image: "/images/kavusma.jpeg",
     text: [
-      "Sen Sivas’a gittikten sonra günler fazlasıyla eksik geçti.",
+      "Sen Sivas’a gittikten sonra günler fazlasıyla eksik geçti. Sensizliğin bana en zor geldiği zaman dilimiydi.",
       "Seni yeniden gördüğüm an bütün özlemim yerini huzura bıraktı.",
       "Elimdeki çiçekler güzeldi ama o günün en güzel şeyi yine sendin. ❤️",
     ],
@@ -44,7 +44,7 @@ const memories = [
       "/images/son-bulusma-2.jpeg",
     ],
     text: [
-      "Artık fotoğraf çekmek için değil, birlikte anı biriktirmek için buluşuyoruz.",
+      "Her hali huzur olan canım sevgilim benim.",
       "Senin yanında hiçbir şey yapmak zorunda olmadan, sadece yanında olmak bile bana yetiyor.",
       "Ve galiba bunun en güzel yanı, her buluşmada sana yeniden hayran olmam. 🤍",
     ],
@@ -299,7 +299,7 @@ function App() {
         <section className="hero screen-animation">
           <div className="heart">💖</div>
 
-          <p className="small-text">Bugün senin günün...</p>
+          <p className="small-text">BUGÜN SENİN GÜNÜN...</p>
 
           <h1>
             Sana küçük bir
@@ -326,7 +326,7 @@ function App() {
         <section className="loading-screen screen-animation">
           <div className="envelope">💌</div>
 
-          <p className="small-text">Bir saniye...</p>
+          <p className="small-text">BİR SANİYE...</p>
 
           <h2>Mektubun hazırlanıyor</h2>
 
@@ -362,18 +362,6 @@ function App() {
             </p>
 
             <p>
-              <strong>27 Ağustos 2025</strong>, seni ilk kez tanıdığım gün
-              olarak hayatımın en özel tarihlerinden biri oldu.
-            </p>
-
-            <p>
-              <strong>28 Eylül 2025</strong> günü ise kamelyada otururken bana
-              “Sen artık benim manitamsın” dediğin anı hiç unutmayacağım.
-              Belki sen bunu çok doğal söyledin ama benim kalbimde kocaman bir
-              yere dönüştü.
-            </p>
-
-            <p>
               İyi ki doğdun Ömer’im. İyi ki hayatımdasın. İyi ki bana
               sevgililiği, arkadaşlığı ve sevgiyi aynı kişide
               hissettiriyorsun.
@@ -398,7 +386,7 @@ function App() {
 
       {screen === "memories" && (
         <section className="memory-placeholder screen-animation">
-          <p className="small-text">Hikâyemizin başlangıcı</p>
+          <p className="small-text">HİKAYEMİZİN BAŞLANGICI</p>
 
           <div className="date-card">
             <span className="date-icon">✨</span>
@@ -447,7 +435,7 @@ function App() {
       {screen === "gallery" && (
         <section className="gallery-screen screen-animation">
           <header className="gallery-header">
-            <p className="small-text">Bizim küçük albümümüz</p>
+            <p className="small-text">BİZİM KÜÇÜK ALBÜMÜMÜZ</p>
 
             <h2>Anılarımız</h2>
 
@@ -540,7 +528,7 @@ function App() {
         <section className="future-screen screen-animation">
           <div className="future-heart">♡</div>
 
-          <p className="future-intro">Biliyor musun?</p>
+          <p className="future-intro">BİLİYOR MUSUN?</p>
 
           <h2>
             En sevdiğim fotoğraf,
@@ -841,7 +829,7 @@ function App() {
 
               <div className="final-main-heart">❤️</div>
 
-              <p className="final-eyebrow">İyi ki doğdun Ömer’im</p>
+              <p className="final-eyebrow">İYİ Kİ DOĞDUN ÖMER'İM</p>
 
               <h1>
                 Bu site bitebilir,
