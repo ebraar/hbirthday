@@ -78,7 +78,7 @@ const reasons = [
   },
   {
     id: 7,
-    text: "Gözlerinin içine baktığımda bütün stresim geçiyor ve kendimi huzurlu hissediyorum. Ve gözlerine aşığım.",
+    text: "Gözlerinin içine baktığımda bütün stresim geçiyor ve kendimi huzurlu hissediyorum. Ve gözlerine âşığım.",
   },
   {
     id: 8,
@@ -118,6 +118,8 @@ function App() {
   const [capsuleOpened, setCapsuleOpened] = useState(false);
   const [finalOpened, setFinalOpened] = useState(false);
 
+  const audioRef = useRef(null);
+  const fadeIntervalRef = useRef(null);
   const memoryRefs = useRef([]);
 
   useEffect(() => {
@@ -156,6 +158,78 @@ function App() {
     return () => observer.disconnect();
   }, [screen]);
 
+  useEffect(() => {
+    return () => {
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const waitForAudioMetadata = (audio) => {
+    return new Promise((resolve) => {
+      if (audio.readyState >= 1) {
+        resolve();
+        return;
+      }
+
+      const handleMetadata = () => {
+        audio.removeEventListener("loadedmetadata", handleMetadata);
+        resolve();
+      };
+
+      audio.addEventListener("loadedmetadata", handleMetadata);
+      audio.load();
+    });
+  };
+
+  const startMemoryMusic = async () => {
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    try {
+      if (fadeIntervalRef.current) {
+        clearInterval(fadeIntervalRef.current);
+        fadeIntervalRef.current = null;
+      }
+
+      await waitForAudioMetadata(audio);
+
+      audio.pause();
+      audio.currentTime = 61;
+      audio.volume = 0;
+
+      await audio.play();
+
+      fadeIntervalRef.current = setInterval(() => {
+        const nextVolume = Math.min(audio.volume + 0.03, 0.45);
+
+        audio.volume = nextVolume;
+
+        if (nextVolume >= 0.45) {
+          clearInterval(fadeIntervalRef.current);
+          fadeIntervalRef.current = null;
+        }
+      }, 150);
+    } catch (error) {
+      console.error("Müzik başlatılamadı:", error);
+    }
+  };
+
+  const resetMusic = () => {
+    if (fadeIntervalRef.current) {
+      clearInterval(fadeIntervalRef.current);
+      fadeIntervalRef.current = null;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 61;
+      audioRef.current.volume = 0;
+    }
+  };
+
   const openReasons = () => {
     setReasonIndex(0);
     setReasonDirection("next");
@@ -165,6 +239,7 @@ function App() {
   const closeReasons = () => {
     setReasonsStarted(false);
     setReasonIndex(0);
+    setReasonDirection("next");
   };
 
   const handleNextReason = () => {
@@ -181,20 +256,41 @@ function App() {
     setReasonIndex((currentIndex) => currentIndex - 1);
   };
 
+  const restartStory = () => {
+    resetMusic();
+
+    setFinalOpened(false);
+    setCapsuleOpened(false);
+    setReasonsStarted(false);
+    setReasonIndex(0);
+    setReasonDirection("next");
+    setScreen("welcome");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   const relationshipStartDate = new Date("2025-09-28T00:00:00");
+  const today = new Date();
 
-const today = new Date();
-
-const daysTogether = Math.max(
-  1,
-  Math.floor(
-    (today.getTime() - relationshipStartDate.getTime()) /
-      (1000 * 60 * 60 * 24)
-  ) + 1
-);
+  const daysTogether = Math.max(
+    1,
+    Math.floor(
+      (today.getTime() - relationshipStartDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+    ) + 1
+  );
 
   return (
     <main className="page">
+      <audio
+        ref={audioRef}
+        src="/music/sanki-ruya.mp3"
+        preload="auto"
+      />
+
       <div className="floating-heart heart-one">♡</div>
       <div className="floating-heart heart-two">♡</div>
       <div className="floating-heart heart-three">♡</div>
@@ -309,6 +405,7 @@ const daysTogether = Math.max(
 
             <div>
               <strong>27 Ağustos 2025</strong>
+
               <p>
                 Hayatımın en güzel tesadüflerinden biriyle tanıştığım gün.
               </p>
@@ -336,7 +433,10 @@ const daysTogether = Math.max(
           <button
             type="button"
             className="continue-button"
-            onClick={() => setScreen("gallery")}
+            onClick={() => {
+              setScreen("gallery");
+              startMemoryMusic();
+            }}
           >
             Anılarımızı aç
             <span>📷</span>
@@ -374,7 +474,6 @@ const daysTogether = Math.max(
                   <span className="memory-icon">{memory.icon}</span>
 
                   <div>
-                    <p className="memory-date">{memory.date}</p>
                     <h3>{memory.title}</h3>
                   </div>
                 </div>
@@ -455,7 +554,8 @@ const daysTogether = Math.max(
           </p>
 
           <p className="future-highlight">
-            Önümüzde birlikte biriktireceğimiz koskoca bir ömür var inşallah sevgilim. 🤍
+            Önümüzde birlikte biriktireceğimiz koskoca bir ömür var inşallah
+            sevgilim. 🤍
           </p>
 
           <button
@@ -464,6 +564,7 @@ const daysTogether = Math.max(
             onClick={() => {
               setReasonsStarted(false);
               setReasonIndex(0);
+              setReasonDirection("next");
               setScreen("reasons");
             }}
           >
@@ -535,9 +636,7 @@ const daysTogether = Math.max(
 
                 <p className="reason-prefix">Çünkü...</p>
 
-                <p className="reason-text">
-                  {reasons[reasonIndex].text}
-                </p>
+                <p className="reason-text">{reasons[reasonIndex].text}</p>
               </article>
 
               <div className="reason-progress">
@@ -575,7 +674,10 @@ const daysTogether = Math.max(
                   <button
                     type="button"
                     className="reason-navigation-button reason-continue-button"
-                    onClick={() => setScreen("timeCapsule")}
+                    onClick={() => {
+                      setCapsuleOpened(false);
+                      setScreen("timeCapsule");
+                    }}
                   >
                     Devam et →
                   </button>
@@ -587,215 +689,214 @@ const daysTogether = Math.max(
       )}
 
       {screen === "timeCapsule" && (
-  <section className="time-capsule-page screen-animation">
-    <div className="capsule-background-heart capsule-heart-one">♡</div>
-    <div className="capsule-background-heart capsule-heart-two">♡</div>
-    <div className="capsule-background-heart capsule-heart-three">♡</div>
+        <section className="time-capsule-page screen-animation">
+          <div className="capsule-background-heart capsule-heart-one">♡</div>
+          <div className="capsule-background-heart capsule-heart-two">♡</div>
+          <div className="capsule-background-heart capsule-heart-three">♡</div>
 
-    {!capsuleOpened ? (
-      <div className="capsule-intro">
-        <div className="capsule-envelope">💌</div>
+          {!capsuleOpened ? (
+            <div className="capsule-intro">
+              <div className="capsule-envelope">💌</div>
 
-        <p className="capsule-small-text">Bir mektup daha var...</p>
+              <p className="capsule-small-text">Bir mektup daha var...</p>
 
-        <h2>
-          Ama bu mektup
-          <span>bugünkü bize değil.</span>
-        </h2>
+              <h2>
+                Ama bu mektup
+                <span>bugünkü bize değil.</span>
+              </h2>
 
-        <p className="capsule-description">
-          Bu mektubu, gelecekte bir gün yeniden okuyalım diye buraya
-          bırakıyorum.
-        </p>
+              <p className="capsule-description">
+                Bu mektubu, gelecekte bir gün yeniden okuyalım diye buraya
+                bırakıyorum.
+              </p>
 
-        <button
-          type="button"
-          className="capsule-open-button"
-          onClick={() => setCapsuleOpened(true)}
-        >
-          Zaman kapsülünü aç
-          <span>♡</span>
-        </button>
-      </div>
-    ) : (
-      <article className="capsule-letter">
-        <div className="capsule-letter-top">
-          <span>Gelecekteki Ömer ve Ebrar’a</span>
-          <span>🤍</span>
-        </div>
+              <button
+                type="button"
+                className="capsule-open-button"
+                onClick={() => setCapsuleOpened(true)}
+              >
+                Zaman kapsülünü aç
+                <span>♡</span>
+              </button>
+            </div>
+          ) : (
+            <article className="capsule-letter">
+              <div className="capsule-letter-top">
+                <span>Gelecekteki Ömer ve Ebrar’a</span>
+                <span>🤍</span>
+              </div>
 
-        <div className="capsule-letter-content">
-          <p className="capsule-greeting">Sevgili biz...</p>
+              <div className="capsule-letter-content">
+                <p className="capsule-greeting">Sevgili biz...</p>
 
-          <p>
-            Bu satırları, birbirimizi çok sevdiğimiz ve önümüzde birlikte
-            yaşayacağımız koskoca bir hayat olduğuna inandığımız bir günden
-            yazıyorum.
-          </p>
+                <p>
+                  Bu satırları, birbirimizi çok sevdiğimiz ve önümüzde birlikte
+                  yaşayacağımız koskoca bir hayat olduğuna inandığımız bir
+                  günden yazıyorum.
+                </p>
 
-          <p>
-            Umarım bu mektubu okuduğumuz gün hâlâ birbirimize aynı sevgiyle
-            bakıyoruzdur. Belki hayatımız değişmiştir, belki farklı bir
-            şehirdeyizdir (ben sivastayımdır ajfhjskdlf), belki de şu an hayalini kurduğumuz birçok şeyi
-            birlikte gerçekleştirmişizdir.
-          </p>
+                <p>
+                  Umarım bu mektubu okuduğumuz gün hâlâ birbirimize aynı
+                  sevgiyle bakıyoruzdur. Belki hayatımız değişmiştir, belki
+                  farklı bir şehirdeyizdir (ben Sivas’tayımdır ajfhjskdlf),
+                  belki de şu an hayalini kurduğumuz birçok şeyi birlikte
+                  gerçekleştirmişizdir.
+                </p>
 
-          <p>
-            Umarım hâlâ birlikte kahve içiyor, küçük şeylere gülüyor ve
-            birbirimizi her koşulda seçmeye devam ediyoruzdur.
-          </p>
+                <p>
+                  Umarım hâlâ birlikte kahve içiyor, küçük şeylere gülüyor ve
+                  birbirimizi her koşulda seçmeye devam ediyoruzdur.
+                </p>
 
-          <p>
-            Ne yaşarsak yaşayalım, bugün hissettiğimiz bu sevgiyi
-            unutmayalım. Çünkü bizim hikâyemiz büyük anlardan değil, birbirimizi
-            her gün yeniden seçtiğimiz küçük anlardan oluşuyor.
-          </p>
+                <p>
+                  Ne yaşarsak yaşayalım, bugün hissettiğimiz bu sevgiyi
+                  unutmayalım. Çünkü bizim hikâyemiz büyük anlardan değil,
+                  birbirimizi her gün yeniden seçtiğimiz küçük anlardan
+                  oluşuyor.
+                </p>
 
-          <p className="capsule-highlight">
-            Gelecekteki bize küçük bir hatırlatma:
-            <span>Biz birbirimizi çok güzel sevdik.</span>
-          </p>
+                <p className="capsule-highlight">
+                  Gelecekteki bize küçük bir hatırlatma:
+                  <span>Biz birbirimizi çok güzel sevdik.</span>
+                </p>
 
-          <p className="capsule-ending">
-            Umarım hep “biz” olarak kalmışızdır.
-            <span>Geçmişteki Ebrar’dan 🤍</span>
-          </p>
-        </div>
+                <p className="capsule-ending">
+                  Umarım hep “biz” olarak kalmışızdır.
+                  <span>Geçmişteki Ebrar’dan 🤍</span>
+                </p>
+              </div>
 
-        <button
-          type="button"
-          className="continue-button"
-          onClick={() => setScreen("final")}
-        >
-          Son bir sürpriz daha var
-          <span>→</span>
-        </button>
-      </article>
-    )}
-  </section>
-)}
-{screen === "final" && (
-  <section className="final-page screen-animation">
-    <div className="final-glow final-glow-one" />
-    <div className="final-glow final-glow-two" />
+              <button
+                type="button"
+                className="continue-button"
+                onClick={() => {
+                  setFinalOpened(false);
+                  setScreen("final");
+                }}
+              >
+                Son bir sürpriz daha var
+                <span>→</span>
+              </button>
+            </article>
+          )}
+        </section>
+      )}
 
-    <div className="final-floating-symbol final-symbol-one">♡</div>
-    <div className="final-floating-symbol final-symbol-two">♡</div>
-    <div className="final-floating-symbol final-symbol-three">✦</div>
+      {screen === "final" && (
+        <section className="final-page screen-animation">
+          <div className="final-glow final-glow-one" />
+          <div className="final-glow final-glow-two" />
 
-    {!finalOpened ? (
-      <div className="final-intro-card">
-        <span className="final-small-title">Ve şimdi...</span>
+          <div className="final-floating-symbol final-symbol-one">♡</div>
+          <div className="final-floating-symbol final-symbol-two">♡</div>
+          <div className="final-floating-symbol final-symbol-three">✦</div>
 
-        <div className="final-gift">🎁</div>
+          {!finalOpened ? (
+            <div className="final-intro-card">
+              <span className="final-small-title">Ve şimdi...</span>
 
-        <h2>
-          Hikâyemizin bugüne kadar süren
-          <span>küçük bir özeti var.</span>
-        </h2>
+              <div className="final-gift">🎁</div>
 
-        <div className="days-together-card">
-          <span className="days-number">{daysTogether}</span>
-          <span className="days-label">gündür biziz</span>
-        </div>
+              <h2>
+                Hikâyemizin bugüne kadar süren
+                <span>küçük bir özeti var.</span>
+              </h2>
 
-        <p className="final-intro-description">
-          Her günümüz kusursuz değildi belki ama seninle geçen her gün,
-          hikâyemizin bir parçası oldu.
-        </p>
+              <div className="days-together-card">
+                <span className="days-number">{daysTogether}</span>
+                <span className="days-label">gündür biziz</span>
+              </div>
 
-        <button
-          type="button"
-          className="final-open-button"
-          onClick={() => setFinalOpened(true)}
-        >
-          Son sürprizi aç
-          <span>💖</span>
-        </button>
-      </div>
-    ) : (
-      <div className="final-message-card">
-        <div className="heart-rain" aria-hidden="true">
-          {Array.from({ length: 18 }).map((_, index) => (
-            <span
-              key={index}
-              style={{
-                "--heart-index": index,
-                "--heart-left": `${(index * 17) % 100}%`,
-                "--heart-delay": `${(index % 7) * 0.35}s`,
-                "--heart-duration": `${4.5 + (index % 5) * 0.6}s`,
-              }}
-            >
-              {index % 3 === 0 ? "💗" : "♡"}
-            </span>
-          ))}
-        </div>
+              <p className="final-intro-description">
+                Her günümüz kusursuz değildi belki ama seninle geçen her gün,
+                hikâyemizin bir parçası oldu.
+              </p>
 
-        <div className="final-main-heart">❤️</div>
+              <button
+                type="button"
+                className="final-open-button"
+                onClick={() => setFinalOpened(true)}
+              >
+                Son sürprizi aç
+                <span>💖</span>
+              </button>
+            </div>
+          ) : (
+            <div className="final-message-card">
+              <div className="heart-rain" aria-hidden="true">
+                {Array.from({ length: 18 }).map((_, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      "--heart-index": index,
+                      "--heart-left": `${(index * 17) % 100}%`,
+                      "--heart-delay": `${(index % 7) * 0.35}s`,
+                      "--heart-duration": `${4.5 + (index % 5) * 0.6}s`,
+                    }}
+                  >
+                    {index % 3 === 0 ? "💗" : "♡"}
+                  </span>
+                ))}
+              </div>
 
-        <p className="final-eyebrow">İyi ki doğdun Ömer’im</p>
+              <div className="final-main-heart">❤️</div>
 
-        <h1>
-          Bu site bitebilir,
-          <span>ama bizim hikâyemiz daha yeni başlıyor.</span>
-        </h1>
+              <p className="final-eyebrow">İyi ki doğdun Ömer’im</p>
 
-        <div className="final-divider">
-          <span />
-          <b>♡</b>
-          <span />
-        </div>
+              <h1>
+                Bu site bitebilir,
+                <span>ama bizim hikâyemiz daha yeni başlıyor.</span>
+              </h1>
 
-        <div className="final-message-text">
-          <p>
-            Hayatıma geldiğin, bana sevgiyi bu kadar güzel hissettirdiğin ve
-            her günümü biraz daha anlamlı yaptığın için sana çok teşekkür
-            ederim.
-          </p>
+              <div className="final-divider">
+                <span />
+                <b>♡</b>
+                <span />
+              </div>
 
-          <p>
-            Yeni yaşında o güzel yüzünün hep gülmesini, kalbinin hep huzurlu olmasını
-            ve kurduğun bütün hayallerin birer birer gerçekleşmesi için dua ediyorum canım sevgilim.
-          </p>
+              <div className="final-message-text">
+                <p>
+                  Hayatıma geldiğin, bana sevgiyi bu kadar güzel hissettirdiğin
+                  ve her günümü biraz daha anlamlı yaptığın için sana çok
+                  teşekkür ederim.
+                </p>
 
-          <p>
-            Ve bütün bu güzel günlerde, mutluluklarında, heyecanlarında ve
-            kurduğun hayallerde yanında olmayı çok istiyorum.
-          </p>
-        </div>
+                <p>
+                  Yeni yaşında o güzel yüzünün hep gülmesini, kalbinin hep
+                  huzurlu olmasını ve kurduğun bütün hayallerin birer birer
+                  gerçekleşmesini diliyorum canım sevgilim.
+                </p>
 
-        <p className="final-highlight-message">
-          Bugün senin doğum günün olabilir...
-          <span>Ama sen benim hayatıma verilmiş en güzel hediyesin.</span>
-        </p>
+                <p>
+                  Ve bütün bu güzel günlerde, mutluluklarında, heyecanlarında
+                  ve kurduğun hayallerde yanında olmayı çok istiyorum.
+                </p>
+              </div>
 
-        <div className="final-signature">
-          <span>Seni her şeyden çok seven</span>
-          <strong>Ebrar’ın 💖</strong>
-        </div>
+              <p className="final-highlight-message">
+                Bugün senin doğum günün olabilir...
+                <span>
+                  Ama sen benim hayatıma verilmiş en güzel hediyesin.
+                </span>
+              </p>
 
-        <button
-          type="button"
-          className="final-restart-button"
-          onClick={() => {
-            setFinalOpened(false);
-            setCapsuleOpened(false);
-            setReasonsStarted(false);
-            setReasonIndex(0);
-            setScreen("welcome");
-            window.scrollTo({
-              top: 0,
-              behavior: "smooth",
-            });
-          }}
-        >
-          Hikâyemizi baştan izle
-          <span>↻</span>
-        </button>
-      </div>
-    )}
-  </section>
-)}
+              <div className="final-signature">
+                <span>Seni her şeyden çok seven</span>
+                <strong>Ebrar’ın 💖</strong>
+              </div>
+
+              <button
+                type="button"
+                className="final-restart-button"
+                onClick={restartStory}
+              >
+                Hikâyemizi baştan izle
+                <span>↻</span>
+              </button>
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 }
