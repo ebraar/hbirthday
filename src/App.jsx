@@ -594,7 +594,7 @@ function App() {
                 className="reasons-start-button"
                 onClick={openReasons}
               >
-                Hazırım ❤️
+                Hazırım 💖
               </button>
             </div>
           ) : (
@@ -619,7 +619,7 @@ function App() {
                 className={`reason-card reason-card-${reasonDirection}`}
               >
                 <span className="reason-card-heart">
-                  {reasonIndex === reasons.length - 1 ? "❤️" : "♡"}
+                  {reasonIndex === reasons.length - 1 ? "💖" : "♡"}
                 </span>
 
                 <p className="reason-prefix">Çünkü...</p>
