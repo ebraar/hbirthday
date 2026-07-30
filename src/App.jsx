@@ -827,7 +827,7 @@ function App() {
                 ))}
               </div>
 
-              <div className="final-main-heart">❤️</div>
+              <div className="final-main-heart">💖</div>
 
               <p className="final-eyebrow">İYİ Kİ DOĞDUN ÖMER'İM</p>
 
