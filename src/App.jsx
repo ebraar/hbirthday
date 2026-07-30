@@ -106,7 +106,7 @@ const reasons = [
   },
   {
     id: 14,
-    text: "Seni tek bir sebepten dolayı sevmiyorum. Sen hayatımın her yerine iyi geldiğin için seviyorum. İyi ki varsın, iyi ki benimsin. ❤️",
+    text: "Seni tek bir sebepten dolayı sevmiyorum. Sen hayatımın her yerine iyi geldiğin için seviyorum. İyi ki varsın, iyi ki benimsin. 💖🙃",
   },
 ];
 
